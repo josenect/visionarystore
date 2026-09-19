@@ -1,0 +1,16 @@
+{
+  "name": "visionary-store-catalogo",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Catálogo web de Visionary Store generado desde Google Drive",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "catalogo": "python3 scripts/crawl.py && python3 scripts/build.py && python3 scripts/verify.py"
+  },
+  "devDependencies": {
+    "vite": "^7.1.5"
+  }
+}

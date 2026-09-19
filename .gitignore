@@ -1,0 +1,19 @@
+# Dependencias y salida de compilacion: se regeneran con npm install / npm run build.
+node_modules/
+dist/
+
+# Fotos descargadas de Drive: se regeneran con scripts/build.py y pesan ~1,5 GB.
+data/cache/
+
+# Volcado crudo del crawler, se regenera con scripts/crawl.py.
+data/tree.json
+
+# NO ignorar data/refs.json ni public/img: el primero guarda las referencias de cada
+# producto y el segundo son las fotos ya optimizadas que se publican.
+
+# El .env de la raiz SI va al repositorio, al contrario de lo habitual: es el unico sitio
+# con los datos del negocio (telefono, nombre, carpeta de Drive) y no contiene ningun
+# secreto, todo eso se ve en la propia web. No lo anadas aqui.
+
+.DS_Store
+__pycache__/

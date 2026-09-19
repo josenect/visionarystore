@@ -1,0 +1,16 @@
+# Cabeceras para Cloudflare Pages / Netlify.
+
+# Las imagenes llevan la referencia en el nombre y nunca cambian de contenido:
+# se pueden cachear para siempre, asi el cliente que vuelve no las descarga otra vez.
+/img/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# El catalogo cambia solo al sincronizar. Con max-age=0 cada visita gastaba una ida y vuelta
+# al servidor para preguntar si cambio. Con 5 minutos, quien vuelve pronto lo tiene al
+# instante, y una sincronizacion tarda como mucho ese rato en verse.
+/catalog.json
+  Cache-Control: public, max-age=300, must-revalidate
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

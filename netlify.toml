@@ -1,0 +1,24 @@
+# Configuracion de despliegue en Netlify.
+# Las cabeceras de cache se leen de public/_headers, que Vite copia tal cual a dist/.
+
+[build]
+  # $URL lo pone Netlify con el dominio del sitio. Hace falta para que las etiquetas
+  # de vista previa lleven URL absoluta y WhatsApp muestre la foto del producto.
+  command = "VITE_SITE_URL=$URL npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Variables que se pueden definir en Netlify (Site configuration > Environment variables).
+# Lo que se ponga aqui gana a lo escrito en el .env de la raiz, que es donde estan por
+# defecto. Son variables de compilacion: despues de cambiarlas hay que relanzar el deploy.
+#   VITE_WHATSAPP  numero que recibe los pedidos, indicativo + numero, sin + ni espacios
+#   VITE_STORE     nombre de la tienda
+#   VITE_TAGLINE   frase bajo el nombre
+#   VITE_MAPS      enlace al local en Google Maps (vacio = sin icono)
+#   VITE_MAPS_LABEL ciudad junto al pin (vacio = solo el icono)
+#   VITE_INSTAGRAM perfil de Instagram (vacio = sin icono)
+#   VITE_TIKTOK    perfil de TikTok (vacio = sin icono)
+#   VITE_FACEBOOK  pagina de Facebook (vacio = sin icono)
+#   VITE_SITE_URL  se rellena sola desde $URL; solo hace falta tocarla con dominio propio

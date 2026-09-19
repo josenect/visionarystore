@@ -1,0 +1,1206 @@
+/* Visionary Store - catalogo. CSS puro, mobile-first, sin dependencias. */
+
+:root {
+  /* Solo modo claro, tambien para lo que pinta el propio navegador (el cuadro del buscador,
+     las barras de desplazamiento). Va ademas en el <meta> del HTML, que se lee antes de
+     pintar: asi el modo oscuro forzado del movil no invierte la pagina ni un instante. */
+  color-scheme: only light;
+  --ink: #14161b;
+  --ink-soft: #5b6270;
+  --line: #e4e6ea;
+  --bg: #ffffff;
+  --bg-soft: #f6f7f9;
+  --dark: #111318;
+  /* Azul acero, aclarado del destello que lleva el logo detras de VISIONARY. Solo como FONDO
+     con texto oscuro encima (volver arriba, contador de filtros). */
+  --acento: #b9c8d6;
+  --wa: #22a45d;
+  /* Las tres superficies donde va el logo: cabecera, pantalla de carga y parte alta del
+     selector. Oscuras, como en NEPTUS: el logo de Visionary es blanco sobre negro. */
+  --cab-fondo: #111318;
+  --cab-tinta: #ffffff;
+  --cab-tinta-suave: #a8adb9;
+  --cab-borde: rgba(255, 255, 255, .14);
+  --radius: 12px;
+  --gap: 12px;
+  /* Alto de la cabecera. No es decorativo: de el cuelgan la barra de filtros pegajosa
+     (top: var(--top-h)) y la pestana, asi que al cambiarlo se recolocan solas. En movil son
+     dos filas -- Catalogo y debajo las redes -- y por eso pasa de 56px a 74px. */
+  --top-h: 74px;
+}
+
+* { box-sizing: border-box; }
+
+/* Va antes que todo lo demas: sin esto, reglas como .chip-block{display:flex} ganan al
+   [hidden] del navegador (misma especificidad) y las filas ocultas seguirian viendose. */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow-wrap: break-word;
+}
+
+img { max-width: 100%; display: block; }
+button { font: inherit; color: inherit; }
+
+.wrap { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 14px; }
+
+/* Mientras dura la entrada el catalogo no se pinta. Sin esto asomaba por detras justo en
+   mitad del cruce: el logo baja de opacidad y el selector sube, y en el punto medio ninguno
+   de los dos es opaco. Va como clase en el <body> del HTML para que aplique desde el primer
+   pintado, sin esperar al JS. */
+.arrancando .top,
+.arrancando .filters,
+.arrancando main,
+.arrancando .foot { visibility: hidden; }
+
+/* Fondo solido durante la entrada: el selector aparece sobre el mismo fondo de la pantalla
+   de carga, sin saltos de color entre una y otro. */
+.arrancando .bien-fondo { background: var(--cab-fondo); }
+
+/* ---------------------------------------------------------------- cargando */
+
+.cargando {
+  position: fixed;
+  inset: 0;
+  z-index: 60;           /* por encima de todo, incluido el selector de bienvenida */
+  background: var(--cab-fondo);
+  display: grid;
+  place-items: center;
+  transition: opacity .6s ease, visibility .6s;
+}
+.cargando img {
+  /* El logo es casi cuadrado: necesita mucho mas alto que uno horizontal para leerse. */
+  height: 132px;
+  max-width: 72vw;
+  width: auto;
+  /* Entra una vez y luego respira: en 2 segundos se ve el gesto completo. */
+  animation: entrada .5s cubic-bezier(.2, .8, .3, 1) both, latido 1.7s ease-in-out .5s infinite;
+}
+/* El logo se va disolviendo y creciendo un pelin, no cortando de golpe. */
+.cargando.fuera { opacity: 0; pointer-events: none; }
+.cargando.fuera img { animation: none; transform: scale(1.06); transition: transform .6s ease; }
+
+@keyframes entrada {
+  from { opacity: 0; transform: translateY(8px) scale(.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes latido {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .62; }
+}
+
+/* ---------------------------------------------------------------- cabecera */
+
+.top {
+  background: var(--cab-fondo);
+  color: var(--cab-tinta);
+  /* Linea fina entre cabecera y barra de filtros. Sombra y no borde, porque un borde sumaria
+     1px al alto y la barra, pegada a --top-h, se descuadraria. */
+  box-shadow: 0 1px 0 var(--cab-borde);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+/* Dos columnas: a la izquierda la marca, a la derecha Catalogo con las redes debajo. La frase
+   convive con los iconos LADO A LADO, nunca por encima: cuando no cabe se parte en lineas
+   hacia abajo dentro de su columna (ver .brand small). */
+.top-in {
+  height: var(--top-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Logo de la marca. Alto fijo y ancho automatico: la cabecera no se descuadra aunque
+   cambien la imagen por otra de proporciones distintas. */
+.brand {
+  display: flex;
+  /* En fila y no apilados: el logo es casi cuadrado y ya ocupa todo el alto. */
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.logo {
+  /* Casi cuadrado: a menos alto el texto del logo deja de leerse. */
+  height: 58px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* La frase vive en su columna, al lado de los iconos y nunca por encima. En una sola linea:
+   cuando no cabe se corta con puntos suspensivos, que mantiene la cabecera a una altura fija
+   -- y esa altura importa, porque --top-h la usan la barra de filtros pegajosa y la pestana. */
+.brand small {
+  font-size: 11px;
+  color: var(--cab-tinta-suave);
+  /* En movil no cabe al lado del logo y de la columna de Catalogo: solo en escritorio. */
+  display: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Columna de la derecha: Catalogo y, debajo, las redes. En escritorio vuelven a la misma fila
+   (ver el bloque de min-width: 700px). */
+.top-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  flex: none;
+}
+
+/* Abre el selector: es la puerta a todas las categorias y conviene que se vea que ahi esta
+   todo. Macizo y en blanco: sobre la cabecera oscura es lo que mas resalta. */
+.cat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  background: #fff;
+  color: var(--dark);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  /* Ajustado, no grueso: macizo en blanco ya pesa bastante y con el relleno de antes se comia
+     la cabecera. */
+  padding: 5px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.cat-btn svg { width: 14px; height: 14px; fill: currentColor; flex: none; }
+.cat-btn:active { opacity: .85; }
+
+/* Ubicacion y redes. Iconos sueltos, sin fondo ni borde: son accesos secundarios y con
+   pastilla propia le quitarian el sitio a Catalogo.
+   En el color de la cabecera y no con el de cada red: tres logos a todo color (rosa, cian,
+   azul) se pelean entre si y con los colores de la marca. En un solo color se leen como un
+   grupo, que es lo que son, y la forma de cada uno ya se reconoce sin color. */
+.redes { display: flex; align-items: center; gap: 14px; }
+.redes a {
+  display: inline-flex;
+  color: var(--cab-tinta);
+  text-decoration: none;
+  /* Area tocable holgada: el dibujo mide 23 pero el objetivo del dedo es de 27. */
+  padding: 2px;
+  transition: opacity .15s ease;
+}
+.redes a svg { width: 23px; height: 23px; fill: currentColor; display: block; }
+.redes a:hover, .redes a:focus-visible { opacity: .75; }
+
+/* La tienda fisica no es una red social, y un pin suelto entre Instagram y TikTok se lee como
+   si lo fuera. Se distingue de dos maneras: lleva la ciudad escrita al lado y queda separado
+   del par de iconos por una linea. */
+.red-lugar { align-items: center; gap: 5px; }
+.red-lugar span {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.redes-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--cab-borde);
+  flex: none;
+}
+/* Sin enlace al local no hay nada que separar: la linea se iria sola al borde. */
+#red-maps[hidden] + .redes-sep { display: none; }
+
+.wa-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--wa); color: #fff;
+  border: 0; border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px; font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.wa-btn svg { width: 17px; height: 17px; fill: currentColor; flex: none; }
+.wa-btn:active { filter: brightness(.92); }
+
+/* ---------------------------------------------------------------- filtros */
+
+.filters {
+  position: sticky;
+  top: var(--top-h);
+  z-index: 20;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0 4px;
+}
+
+/* La barra se recoge al bajar y solo vuelve al llegar arriba del todo. Se mueve con
+   transform, que no toca el flujo: el contenido no pega un salto al recogerse.
+   Animacion larga a proposito: se lee como que la barra se retira, no como un corte.
+   Solo en movil; en escritorio hay alto de sobra y se queda fija. */
+@media (max-width: 699px) {
+  .filters {
+    transition: transform .75s cubic-bezier(.22, .61, .36, 1);
+    will-change: transform;
+  }
+  .filters.oculto { transform: translateY(calc(-100% - 1px)); }
+}
+
+/* WhatsApp, fijo a la derecha y a media altura. Estaba en la cabecera, que en movil se recoge
+   al bajar: justo cuando el cliente ha visto algo que le gusta, el boton para preguntar ya no
+   estaba. Aqui no se mueve nunca.
+   El centro vertical lo deja lejos de los otros dos flotantes: Volver arriba esta abajo a la
+   izquierda y la pestana de filtros arriba al centro. */
+.wa-flot {
+  position: fixed;
+  right: calc(14px + env(safe-area-inset-right));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 25;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: var(--wa);
+  color: #fff;
+  /* Aro blanco, como en Volver arriba: el verde sobre una foto oscura se difumina. */
+  box-shadow: 0 0 0 2px #fff, 0 4px 16px rgba(10, 12, 16, .34);
+  transition: opacity .25s ease;
+}
+.wa-flot svg { width: 27px; height: 27px; fill: currentColor; }
+.wa-flot:active { filter: brightness(.92); }
+
+/* Con el panel de filtros abierto, o durante la entrada, no pinta nada. */
+body.panel-abierto .wa-flot,
+.arrancando .wa-flot { opacity: 0; pointer-events: none; }
+
+/* Volver arriba. Aparece cuando ya se ha bajado lo suficiente como para que rebobinar a
+   mano canse. Abajo a la izquierda, lejos del boton de WhatsApp que ocupa la derecha. */
+.subir {
+  position: fixed;
+  left: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 25;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  /* Dorado de la marca, no blanco ni negro. Blanco se perdia sobre las fotos claras (que son
+     muchas: fondos de estudio y camisetas blancas) y negro lo confundia con la pestana de
+     filtros. El dorado contrasta contra foto clara y oscura, y no se parece a nada mas. */
+  background: var(--acento);
+  color: var(--dark);
+  border: 0;
+  cursor: pointer;
+  /* Aro blanco + sombra: el dorado esta a media luminancia y contra una foto clara y calida
+     (fondos de estudio, prendas beige) se camuflaba. El aro lo separa de cualquier fondo. */
+  box-shadow: 0 0 0 2px #fff, 0 4px 16px rgba(10, 12, 16, .34);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(14px);
+  transition: opacity .25s ease, transform .25s ease;
+}
+.subir svg { width: 24px; height: 24px; fill: currentColor; }
+.subir.visible { opacity: 1; pointer-events: auto; transform: none; }
+
+/* Con el panel abierto o durante la entrada no pinta nada. */
+body.panel-abierto .subir,
+.arrancando .subir { opacity: 0; pointer-events: none; }
+
+/* Pestana con la flecha. Aparece cuando la barra se recoge y la devuelve de un toque. */
+.tirador {
+  position: fixed;
+  top: calc(var(--top-h) + 6px);
+  left: 50%;
+  z-index: 19;              /* por debajo de la barra: al bajar ella, la tapa */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 12px 0 13px;
+  border: 0;
+  border-radius: 0 0 13px 13px;
+  background: var(--dark);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .01em;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(10, 12, 16, .28);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -16px);
+  transition: opacity .45s ease, transform .45s ease;
+}
+.tirador svg { width: 15px; height: 15px; fill: currentColor; }
+
+@media (max-width: 699px) {
+  .tirador { display: inline-flex; }
+  .filters.oculto ~ .tirador {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+  }
+  /* Con el panel abierto estorba. */
+  body.panel-abierto .tirador,
+  .arrancando .tirador { opacity: 0; pointer-events: none; }
+}
+
+.search-row { display: flex; gap: 8px; align-items: center; }
+
+.search { position: relative; flex: 1; min-width: 0; }
+.search svg {
+  position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+  width: 16px; height: 16px; fill: var(--ink-soft); pointer-events: none;
+}
+.search input {
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg-soft);
+  font-size: 14px;
+  color: inherit;
+  -webkit-appearance: none;
+}
+.search input:focus { outline: 2px solid var(--dark); outline-offset: -1px; background: #fff; }
+
+/* En movil sobra: los filtros activos se quitan desde las pastillas o desde el panel,
+   y aqui solo robaria ancho al buscador. */
+.reset { display: none; }
+
+@media (min-width: 700px) {
+  .reset {
+    display: inline-block;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 999px;
+    padding: 8px 13px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+}
+
+/* En el panel: etiqueta encima y los chips en varias lineas, para ver las 18 categorias
+   de golpe. En escritorio (.rows) pasan a fila con etiqueta al lado. */
+.chip-block { margin-bottom: 16px; }
+
+.chip-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  margin-bottom: 7px;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; }
+.chips::-webkit-scrollbar { height: 3px; }
+.chips::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+.chips-wrap { position: relative; min-width: 0; }
+.chips-nav { display: none; }
+
+/* Los chips a la vista tambien en movil. Sin etiquetas (CATEGORIA/TALLA) para no gastar una
+   linea por fila: los nombres de categoria y las tallas se entienden solos. El boton
+   "Filtros" abre el panel, que es donde se ven las 18 categorias de golpe. */
+.rows { margin-top: 9px; }
+.rows .chip-label { display: none; }
+
+/* Mientras el panel esta abierto la barra no pinta chips: es justo lo que el panel muestra,
+   y verlos dos veces era lo que confundia. */
+body.panel-abierto .rows { display: none; }
+.rows .chip-block { margin-bottom: 9px; }
+.rows .chips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.rows .chips::-webkit-scrollbar { display: none; }
+
+/* El degradado y las flechas avisan de que la fila sigue hacia los lados. */
+.rows .chips-wrap::before,
+.rows .chips-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 2px;
+  width: 40px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  z-index: 1;
+}
+.rows .chips-wrap::before { left: 0; background: linear-gradient(to right, var(--bg) 55%, transparent); }
+.rows .chips-wrap::after { right: 0; background: linear-gradient(to left, var(--bg) 55%, transparent); }
+.rows .chips-wrap.can-left::before,
+.rows .chips-wrap.can-right::after { opacity: 1; }
+
+/* El degradado solo insinua; la flecha lo dice. Sin ellas no quedaba claro que la fila
+   de categorias continua. */
+.rows .chips-nav {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(10, 12, 16, .18);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+}
+.rows .chips-nav.prev { left: 0; }
+.rows .chips-nav.next { right: 0; }
+.rows .chips-wrap.can-left .chips-nav.prev,
+.rows .chips-wrap.can-right .chips-nav.next { opacity: 1; pointer-events: auto; }
+
+.nota { font-style: normal; color: var(--dark); font-weight: 600; }
+
+/* ------------------------------------------------- boton de filtros + panel (movil) */
+
+.filters-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.filters-btn svg { width: 15px; height: 15px; fill: currentColor; }
+.filters-btn[aria-expanded="true"] { background: var(--dark); border-color: var(--dark); color: #fff; }
+
+.fbadge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--acento);
+  color: var(--dark);
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: var(--dark);
+  color: #fff;
+  border-radius: 999px;
+  padding: 5px 8px 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 100%;
+}
+.pill span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pill em {
+  font-style: normal;
+  font-size: 15px;
+  line-height: 1;
+  opacity: .75;
+}
+
+/* Por encima de la cabecera (30) y de la barra (20): el panel y su fondo son hermanos del
+   body, asi que compiten con ellos. Cuando vivian dentro de .filters bastaba con 1 y 2. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 16, .5);
+  z-index: 35;
+  animation: fade .18s ease;
+}
+@keyframes fade { from { opacity: 0 } }
+
+.panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 36;
+  background: #fff;
+  border-radius: 18px 18px 0 0;
+  max-height: 84dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 0 calc(12px + env(safe-area-inset-bottom));
+  transform: translateY(101%);
+  transition: transform .22s ease;
+  box-shadow: 0 -10px 34px rgba(10, 12, 16, .22);
+  visibility: hidden;
+}
+body.panel-abierto .panel { transform: none; visibility: visible; }
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0 12px;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+  z-index: 1;
+}
+.panel-head strong { font-size: 16px; }
+
+.panel-x {
+  border: 0;
+  background: var(--bg-soft);
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.panel-foot {
+  display: flex;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  background: #fff;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.panel-clear {
+  flex: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  padding: 13px 18px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.panel-apply {
+  flex: 1;
+  border: 0;
+  background: var(--dark);
+  color: #fff;
+  border-radius: 10px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+  flex: none;
+}
+.chip b { font-weight: 600; }
+.chip span { color: var(--ink-soft); font-size: 11px; margin-left: 4px; }
+.chip[aria-pressed="true"] {
+  background: var(--dark);
+  border-color: var(--dark);
+  color: #fff;
+}
+.chip[aria-pressed="true"] span { color: #b9bec9; }
+
+/* ---------------------------------------------------------------- grid */
+
+.count { font-size: 13px; color: var(--ink-soft); margin: 14px 0 10px; }
+.count b { color: var(--ink); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--gap);
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+.card:active { transform: scale(.985); }
+
+.card-img {
+  width: 100%;
+  /* height:auto es imprescindible: sin el, el atributo height del <img> (que esta ahi para
+     reservar el hueco antes de que cargue) mandaria sobre el aspect-ratio y las tarjetas
+     saldrian estiradas. */
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  background: var(--bg-soft);
+}
+
+.card-body { padding: 7px 9px 9px; }
+
+.card-ref {
+  font-size: 11px;
+  letter-spacing: .05em;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-cat {
+  font-size: 12px;
+  font-weight: 600;
+  margin: 1px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Precio escrito en la foto o su carpeta. Lo mas buscado de la ficha despues de la foto. */
+.card-precio {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.tallas { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 6px; }
+
+.talla {
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  color: #b3b8c2;
+}
+.talla.on {
+  background: var(--dark);
+  border-color: var(--dark);
+  color: #fff;
+}
+
+.empty { text-align: center; color: var(--ink-soft); padding: 40px 0; }
+.linklike {
+  background: none; border: 0; padding: 0;
+  color: var(--ink); text-decoration: underline; cursor: pointer;
+}
+
+/* ---------------------------------------------------------------- paginacion */
+
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+  padding: 26px 0 40px;
+}
+
+.pager button {
+  min-width: 38px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.pager button[aria-current="true"] {
+  background: var(--dark); border-color: var(--dark); color: #fff; font-weight: 600;
+}
+.pager button:disabled { opacity: .35; cursor: default; }
+.pager .dots { color: var(--ink-soft); padding: 0 2px; }
+
+/* ---------------------------------------------------------------- pie */
+
+.foot {
+  border-top: 1px solid var(--line);
+  padding: 22px 0 34px;
+  background: var(--bg-soft);
+}
+.foot p { margin: 0 0 4px; font-size: 13px; }
+.muted { color: var(--ink-soft); font-size: 12px !important; }
+
+/* ---------------------------------------------------------------- lightbox */
+
+/* En movil ocupa la pantalla entera. La clave es que el bloque de info (donde esta el boton
+   de WhatsApp) tenga altura fija abajo y sea la imagen la que se encoja: si la imagen crece
+   libremente, en pantallas bajas empuja el boton fuera de la vista y no hay forma de pedir. */
+.lb {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  max-width: 100vw;
+  /* dvh y no svh. svh es la altura MINIMA del viewport (con las barras del navegador
+     desplegadas): cuando esas barras se retraen la pantalla crece y el dialogo se quedaba
+     corto, dejando ver el catalogo por debajo. dvh es la altura visible en cada momento, que
+     es justo lo que tiene que ocupar. El boton de pedir sigue a salvo porque quien se encoge
+     es la foto (.lb-img es flex 1 1 0), no el bloque de abajo. */
+  height: 100dvh;
+  max-height: 100dvh;
+  background: #fff;
+  border-radius: 0;
+  overflow: hidden;
+}
+.lb::backdrop { background: rgba(10, 12, 16, .82); }
+
+.lb-in {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.lb-img {
+  position: relative;
+  background: #0d0f13;
+  display: block;
+  /* flex-basis 0 + min-height 0 = se queda con el hueco que sobre, nunca lo reclama. */
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.lb-pan {
+  width: 100%;
+  height: 100%;
+  /* Flex y no grid: con place-items:center el alto porcentual de la foto queda indefinido y
+     la imagen se sale de la caja (se veria recortada en pantallas bajas en vez de encogerse). */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lb-img img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Ver de cerca. Se agranda la foto y se deja que el propio navegador la desplace: en el movil
+   se arrastra con el dedo sin inventar gestos, y en escritorio con la rueda.
+   Al ampliar se pasa a display:block a proposito: con flex centrado, lo que se sale por
+   arriba y por la izquierda queda fuera del alcance del scroll y no se puede llegar a ello. */
+.lb-pan.zoom {
+  display: block;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  cursor: zoom-out;
+}
+.lb-pan.zoom img {
+  width: 250%;
+  max-width: none;
+  height: auto;
+  max-height: none;
+}
+
+/* Rueda de carga del detalle. Solo aparece si la foto no estaba en cache: al cambiar de
+   producto rapido es lo unico que confirma que el toque entro. */
+.lb-img.cargando::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 3px solid rgba(255, 255, 255, .25);
+  border-top-color: #fff;
+  border-radius: 999px;
+  animation: girar .7s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes girar { to { transform: rotate(360deg); } }
+
+/* Mientras carga no tiene sentido ofrecer la lupa: no hay nada que ampliar. */
+.lb-img.cargando .lb-zoom { opacity: 0; pointer-events: none; }
+
+.lb-zoom {
+  transition: opacity .2s ease;
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(20, 22, 28, .62);
+  color: #fff;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.lb-zoom svg { width: 22px; height: 22px; fill: currentColor; }
+
+/* Al ampliar, las flechas de anterior/siguiente estorban el arrastre. */
+.lb.ampliada .lb-nav { display: none; }
+
+.lb-info {
+  flex: 0 0 auto;
+  /* Sin esto, al llegar al final de esta zona el gesto sigue en la pagina de detras y se ve
+     el catalogo corriendose por debajo del detalle. */
+  overscroll-behavior: contain;
+  max-height: 52dvh;
+  overflow-y: auto;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+}
+.lb-cat { margin: 0; font-size: 12px; color: var(--ink-soft); }
+.lb-ref {
+  margin: 2px 0 12px;
+  font-size: 19px;
+  letter-spacing: .04em;
+  font-variant-numeric: tabular-nums;
+}
+/* Nombre y precio bajo la referencia; solo salen si el producto los tiene. */
+.lb-nombre { margin: -8px 0 4px; font-size: 15px; font-weight: 600; }
+.lb-precio {
+  margin: 0 0 14px;
+  font-size: 21px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lb-lbl {
+  margin: 0 0 6px;
+  font-size: 10px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.lb-sizes { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.lb-size {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  padding: 7px 13px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lb-size[aria-pressed="true"] { background: var(--dark); border-color: var(--dark); color: #fff; }
+
+.wa-big { width: 100%; justify-content: center; padding: 13px; font-size: 15px; }
+.wa-big svg { width: 19px; height: 19px; }
+
+.lb-hint { margin: 8px 0 0; font-size: 11px; color: var(--ink-soft); text-align: center; }
+
+.lb-x, .lb-nav {
+  position: fixed;
+  z-index: 5;
+  border: 0;
+  background: rgba(20, 22, 28, .6);
+  color: #fff;
+  cursor: pointer;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.lb-x {
+  top: calc(10px + env(safe-area-inset-top));
+  right: 12px;
+  width: 38px; height: 38px;
+  font-size: 26px; line-height: 1;
+}
+.lb-nav { top: 28dvh; width: 40px; height: 40px; font-size: 28px; line-height: 1; }
+.lb-prev { left: 10px; }
+.lb-next { right: 10px; }
+.lb-nav:disabled { opacity: .25; }
+
+/* ---------------------------------------------------------------- escritorio */
+
+@media (min-width: 700px) {
+  :root { --gap: 16px; --top-h: 62px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .logo { height: 50px; }
+  .brand small { display: block; }
+
+  /* Aqui hay ancho de sobra: Catalogo y las redes vuelven a la misma fila y la cabecera
+     recupera su alto de una linea. */
+  .top-in { display: flex; justify-content: space-between; gap: 12px; }
+  /* flex-direction explicito: la regla base es column (en movil van apiladas) y sin esto la
+     columna seguia vertical aqui, mas alta que la cabecera: Catalogo salia cortado por arriba
+     y las redes por debajo, tapadas por la barra de filtros. */
+  .top-acciones { display: flex; flex-direction: row; align-items: center; gap: 16px; flex: none; }
+  .redes { grid-column: auto; }
+  .card-cat { font-size: 13px; }
+
+  /* En escritorio sobra el panel entero: las filas de la barra ya muestran todo. */
+  .filters-btn, .pills, .scrim, .panel { display: none !important; }
+  .rows .chip-label { display: block; }
+
+  /* Etiqueta al lado en vez de encima: hay ancho de sobra y ahorra alto. */
+  .rows { margin-top: 4px; }
+  .chip-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rows .chip-block { margin-bottom: 6px; }
+  .chip-label { width: 68px; flex: none; margin-bottom: 0; padding-top: 2px; }
+  .chips-wrap { flex: 1; }
+
+  .rows .chips-wrap::before,
+  .rows .chips-wrap::after { width: 48px; bottom: 4px; }
+  .rows .chips-nav { width: 28px; height: 28px; font-size: 18px; }
+  .rows .chips-nav:hover { background: var(--bg-soft); }
+
+  /* En escritorio vuelve a ser una ventana centrada, no una pantalla completa. */
+  .lb {
+    border-radius: 14px;
+    width: min(960px, 100vw);
+    /* fit-content y no auto: el dialogo modal va anclado arriba y abajo de la pantalla, y ahi
+       "auto" significa estirarse hasta el max-height. Con fotos apaisadas (las de La Fabrica
+       casi todas) el contenido media 500px y la ventana 748: sobraba un hueco en blanco
+       debajo de la foto. Ajustada al contenido, margin:auto la deja centrada en la pantalla. */
+    height: fit-content;
+    max-height: 92dvh;
+    margin: auto;
+  }
+  .lb-in { flex-direction: row; height: auto; max-height: 92dvh; }
+  .lb-img { flex: 1 1 58%; }
+  .lb-img img { width: auto; height: auto; max-width: 100%; max-height: 92dvh; }
+  .lb-info { flex: 0 0 300px; max-height: none; padding: 24px; overflow-y: auto; }
+  .lb-x { position: absolute; }
+  .lb-nav { position: fixed; top: 50%; transform: translateY(-50%); width: 46px; height: 46px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ---------------------------------------------------------------- bienvenida */
+
+/* Pantalla de entrada: banda oscura con el logo arriba para que se lea como el inicio de la
+   tienda y no como un aviso, y fichas pequenas para que quepan muchas categorias de un
+   vistazo sin tener que desplazar.
+
+   Capa normal y no <dialog> con showModal(): un dialogo modal va a la top layer, por encima
+   de cualquier z-index, y entonces no hay forma de que el logo del cargador se quede delante
+   mientras se cruzan. Con z-index normal si se puede encadenar el relevo. */
+.bien-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(10, 12, 16, .72);
+  display: grid;
+  place-items: stretch;
+  animation: bienFondo .4s ease both;
+}
+
+.bien {
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+  min-height: 0;
+  /* Tres piezas: logo arriba, rejilla que se desplaza en medio y el boton siempre abajo.
+     Asi "Ver todo" no queda enterrado al final de 18 categorias. */
+  display: flex;
+  flex-direction: column;
+  animation: bienEntra .42s cubic-bezier(.2, .8, .3, 1) both;
+}
+.bien-top, .bien-foot { flex: none; }
+@keyframes bienFondo { from { opacity: 0; } to { opacity: 1; } }
+
+@keyframes bienEntra {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.bien-x {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(17, 19, 24, .07);
+  color: var(--cab-tinta);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bien-top {
+  position: relative;
+  background: var(--cab-fondo);
+  border-bottom: 1px solid var(--cab-borde);
+  padding: 22px 16px 18px;
+  text-align: center;
+}
+
+.bien-logo {
+  height: 84px;
+  width: auto;
+  margin: 0 auto;
+}
+
+.bien-hola {
+  margin: 12px 0 0;
+  color: var(--cab-tinta-suave);
+  font-size: 12.5px;
+  letter-spacing: .01em;
+}
+
+.bien-in {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 14px 18px;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.bien-in:focus { outline: none; }
+
+.bien-foot {
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+}
+
+.bien-titulo {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+
+.bien-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(98px, 1fr));
+  gap: 8px;
+}
+
+.bien-item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+}
+.bien-item:active { transform: scale(.97); }
+
+.bien-item img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  background: var(--bg-soft);
+}
+
+.bien-item b {
+  display: block;
+  padding: 6px 7px 1px;
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -.005em;
+}
+.bien-item span {
+  display: block;
+  padding: 0 7px 7px;
+  font-size: 9.5px;
+  color: var(--ink-soft);
+}
+
+.bien-todo {
+  display: block;
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  border: 0;
+  background: var(--dark);
+  color: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.bien-todo span { color: #a8adb9; font-weight: 500; }
+
+@media (min-width: 700px) {
+  .bien-fondo { place-items: center; }
+  .bien {
+    width: min(820px, 100vw);
+    max-height: 90dvh;
+    border-radius: 16px;
+  }
+  .bien-top { padding: 30px 20px 26px; }
+  .bien-logo { height: 96px; }
+  .bien-in { padding: 22px 26px; }
+  .bien-foot { padding: 14px 26px; }
+  .bien-grid { grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); }
+  .bien-item b { font-size: 11.5px; }
+  .bien-item span { font-size: 10px; }
+}

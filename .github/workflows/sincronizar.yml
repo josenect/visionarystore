@@ -1,0 +1,69 @@
+name: Sincronizar catálogo
+
+# Lee la carpeta de Drive, descarga y convierte solo las fotos nuevas, y guarda el resultado
+# en el repositorio. Netlify detecta el push y republica el sitio solo.
+#
+# Se dispara de dos formas: a mano desde la pestaña Actions (botón "Run workflow"), para
+# publicar algo al momento, y sola cada 6 horas por si nadie se acuerda de pulsarlo.
+on:
+  workflow_dispatch:
+  schedule:
+    # El cron de GitHub va en UTC: cada 12 horas cae a las 07:00 y 19:00 hora de Colombia. Si
+    # no hay nada nuevo en Drive la ejecución termina sin commit y Netlify no despliega: el
+    # catálogo solo cambia su fecha cuando cambió algo más (ver scripts/build.py).
+    - cron: "0 */24 * * *"
+
+# Necesario para que el workflow pueda guardar las fotos nuevas y las referencias.
+permissions:
+  contents: write
+
+# Si alguien lanza dos sincronizaciones seguidas, la segunda espera en vez de pisar a la
+# primera: dos procesos escribiendo refs.json a la vez lo corromperian.
+concurrency:
+  group: sincronizar-catalogo
+  cancel-in-progress: false
+
+jobs:
+  sincronizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar Pillow
+        run: pip install --quiet Pillow
+
+      # Guarda entre ejecuciones los JPEG ya bajados de Drive. Sin esto cada sincronización
+      # volvería a descargar las ~1000 fotos (25-35 min); con esto solo baja las nuevas.
+      - name: Recuperar fotos ya descargadas
+        uses: actions/cache@v4
+        with:
+          path: data/cache
+          key: drive-cache-${{ github.run_id }}
+          restore-keys: drive-cache-
+
+      - name: Leer Drive y generar el catálogo
+        run: |
+          python3 scripts/crawl.py
+          python3 scripts/build.py
+          python3 scripts/verify.py
+
+      - name: Guardar los cambios
+        run: |
+          git config user.name "Sincronización automática"
+          git config user.email "actions@github.com"
+          git add public/img public/catalog.json data/refs.json
+          if git diff --staged --quiet; then
+            echo "No hay nada nuevo en Drive: el catálogo ya estaba al día."
+            exit 0
+          fi
+          git commit -m "Sincronizar catálogo desde Drive"
+          git push
+          echo "Catálogo actualizado. Netlify republicará el sitio en un par de minutos."

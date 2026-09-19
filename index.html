@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>%VITE_STORE% · Catálogo</title>
+<meta name="description" content="%VITE_DESCRIPCION%">
+<meta name="color-scheme" content="only light">
+<!-- Solo modo claro: sin esto, el modo oscuro del movil (Chrome en Android, Samsung
+     Internet...) invierte la pagina a la fuerza y el logo y los colores se pierden. -->
+<meta name="theme-color" content="#111318">
+<meta property="og:title" content="%VITE_STORE% · Catálogo">
+<meta property="og:description" content="%VITE_DESCRIPCION%">
+<meta property="og:type" content="website">
+<meta property="og:image" content="%VITE_SITE_URL%/icon-512.png">
+<meta property="og:url" content="%VITE_SITE_URL%/">
+<!-- Arranca la descarga del catalogo a la vez que la del JS. Sin esto no empieza hasta que
+     el JS se ha descargado y parseado, y hasta que llega no se pinta ni un producto. -->
+<link rel="preload" href="catalog.json" as="fetch" crossorigin>
+<link rel="icon" href="icon-180.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+</head>
+<body class="arrancando">
+
+<!-- Lo primero que se ve: solo el logo sobre negro mientras llega el catalogo. Va aqui
+     arriba del todo para que se pinte antes que nada. -->
+<div class="cargando" id="cargando">
+  <img src="logo.png" alt="%VITE_STORE%" width="619" height="506">
+</div>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="./" aria-label="Inicio">
+      <!-- Logo real de la marca: PNG recortado y con fondo transparente, generado desde el
+           original. Se sirve desde public/ para poder reemplazarlo sin tocar código. -->
+      <img class="logo" src="logo.png" alt="%VITE_STORE%" width="619" height="506">
+      <small id="tagline"></small>
+    </a>
+    <div class="top-acciones">
+      <button id="abrir-catalogo" class="cat-btn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+        <span>Catálogo</span>
+      </button>
+      <!-- Ubicación y redes. Nacen ocultos: src/app.js solo los muestra si su variable del
+           .env trae dirección, así una tienda sin TikTok no enseña un icono que no lleva
+           a ningún sitio. -->
+      <nav class="redes" aria-label="Ubicación y redes">
+        <a id="red-maps" class="red-lugar" href="#" target="_blank" rel="noopener" hidden aria-label="Cómo llegar a la tienda">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5"/></svg>
+          <span id="maps-label" hidden></span>
+        </a>
+        <span class="redes-sep" aria-hidden="true"></span>
+        <a id="red-fb" href="#" target="_blank" rel="noopener" hidden aria-label="Facebook">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5.02 3.66 9.18 8.44 9.94v-7.03H7.9v-2.91h2.54V9.85c0-2.52 1.49-3.91 3.77-3.91 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.89h2.78l-.45 2.91h-2.33V22c4.78-.76 8.44-4.92 8.44-9.94"/></svg>
+        </a>
+        <a id="red-ig" href="#" target="_blank" rel="noopener" hidden aria-label="Instagram">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.8 2h8.4A5.8 5.8 0 0 1 22 7.8v8.4a5.8 5.8 0 0 1-5.8 5.8H7.8A5.8 5.8 0 0 1 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8A3.6 3.6 0 0 0 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6A3.6 3.6 0 0 0 16.4 4zm9.65 1.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6"/></svg>
+        </a>
+        <a id="red-tiktok" href="#" target="_blank" rel="noopener" hidden aria-label="TikTok">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5 2.59 2.59 0 1 1 .77-5.06v-3.1a5.66 5.66 0 0 0-.77-.05A5.68 5.68 0 1 0 15.54 15.4V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3a4.28 4.28 0 0 1-3.24-1.48"/></svg>
+        </a>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<div class="filters" id="filters">
+  <div class="wrap">
+
+    <div class="search-row">
+      <div class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 1 0 4.9 14.32l5.39 5.39 1.42-1.42-5.39-5.39A8 8 0 0 0 10 2m0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12"/></svg>
+        <input id="q" type="search" placeholder="Buscar referencia o producto (ej. BUZ-0001)" autocomplete="off" aria-label="Buscar por referencia">
+      </div>
+      <!-- Solo en movil: abre el panel de filtros. En escritorio los chips ya estan a la vista. -->
+      <button id="open-filters" class="filters-btn" type="button" aria-expanded="false" aria-controls="panel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h18v2H3zm4 6h10v2H7zm3 6h4v2h-4z"/></svg>
+        <span>Filtros</span>
+        <span class="fbadge" id="fbadge" hidden></span>
+      </button>
+      <button id="reset" class="reset" type="button" hidden>Limpiar filtros</button>
+    </div>
+
+    <!-- Solo escritorio: ahí hay ancho de sobra para tener los chips a la vista. En móvil
+         esta fila no existe y los filtros viven únicamente en el panel, para que no aparezcan
+         dos veces ni haya dos sitios donde tocar lo mismo. -->
+    <div class="rows">
+      <div class="chip-block">
+        <span class="chip-label grupo-label">Categoría</span>
+        <div class="chips-wrap">
+          <div class="chips" id="cats"></div>
+          <button class="chips-nav prev" type="button" aria-label="Ver anteriores">&#8249;</button>
+          <button class="chips-nav next" type="button" aria-label="Ver más">&#8250;</button>
+        </div>
+      </div>
+
+      <div class="chip-block" id="brand-block" hidden>
+        <span class="chip-label">Marca</span>
+        <div class="chips-wrap">
+          <div class="chips" id="brands"></div>
+          <button class="chips-nav prev" type="button" aria-label="Ver marcas anteriores">&#8249;</button>
+          <button class="chips-nav next" type="button" aria-label="Ver más marcas">&#8250;</button>
+        </div>
+      </div>
+
+      <div class="chip-block" id="size-block">
+        <span class="chip-label">Talla</span>
+        <div class="chips-wrap">
+          <div class="chips" id="sizes"></div>
+          <button class="chips-nav prev" type="button" aria-label="Ver tallas anteriores">&#8249;</button>
+          <button class="chips-nav next" type="button" aria-label="Ver más tallas">&#8250;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros activos, para verlos y quitarlos de un toque. -->
+    <div class="pills" id="pills" hidden></div>
+
+  </div>
+
+</div>
+
+<!-- Pestaña que queda cuando la barra se recoge: sin ella habría que adivinar que los
+     filtros siguen ahí. Va después de .filters para poder encenderla desde su clase. -->
+<button class="tirador" id="tirador" type="button">
+  <span>Filtros</span>
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></svg>
+</button>
+
+<div class="scrim" id="scrim" hidden></div>
+
+<div class="panel" id="panel">
+  <div class="wrap">
+
+    <div class="panel-head">
+      <strong>Filtros</strong>
+      <button class="panel-x" id="close-filters" type="button" aria-label="Cerrar">&times;</button>
+    </div>
+
+    <!-- Copia del mismo juego de filtros, aquí sin recortar: todo en varias líneas. -->
+    <div class="chip-block">
+      <span class="chip-label grupo-label">Categoría</span>
+      <div class="chips" id="cats-p"></div>
+    </div>
+
+    <div class="chip-block" id="brand-block-p" hidden>
+      <span class="chip-label">Marca</span>
+      <div class="chips" id="brands-p"></div>
+    </div>
+
+    <div class="chip-block" id="size-block-p">
+      <span class="chip-label">Talla</span>
+      <div class="chips" id="sizes-p"></div>
+    </div>
+
+    <div class="panel-foot">
+      <button class="panel-clear" id="panel-clear" type="button">Limpiar</button>
+      <button class="panel-apply" id="panel-apply" type="button">Ver <span id="apply-n"></span></button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Selector de categoria. Sale en cada pestaña nueva (nunca si el enlace ya trae categoria)
+     y se puede reabrir con el boton "Catálogo" de la cabecera. Mientras esta abierto en el
+     arranque no se descarga ninguna foto de producto. -->
+<div class="bien-fondo" id="bienvenida" hidden>
+  <div class="bien" role="dialog" aria-modal="true" aria-labelledby="bien-titulo">
+    <div class="bien-top">
+      <!-- Solo al abrirlo desde la cabecera: permite salir sin tocar el filtro que ya
+           estuviera puesto. En el arranque no existe, porque ahi hay que elegir algo. -->
+      <button class="bien-x" id="bien-x" type="button" aria-label="Cerrar" hidden>&times;</button>
+      <img class="bien-logo" src="logo.png" alt="%VITE_STORE%" width="619" height="506">
+      <p class="bien-hola" id="bien-hola"></p>
+    </div>
+    <div class="bien-in">
+      <h2 class="bien-titulo" id="bien-titulo">¿Qué quieres ver?</h2>
+      <div class="bien-grid" id="bien-grid"></div>
+    </div>
+    <div class="bien-foot">
+      <button class="bien-todo" id="bien-todo" type="button">
+        Ver todo el catálogo <span id="bien-total"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Volver arriba sin tener que deshacer el scroll a mano. A la izquierda porque la esquina
+     derecha de abajo es donde Netlify fija su distintivo. -->
+<button class="subir" id="subir" type="button" aria-label="Volver arriba">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8l6 6-1.4 1.4L12 10.8l-4.6 4.6L6 14z"/></svg>
+</button>
+
+<!-- WhatsApp, antes en la cabecera. Aquí fuera, a nivel de <body>: dentro de la cabecera o de
+     los filtros dejaría de ser fijo, porque un ancestro con transform pasa a ser su marco de
+     referencia. Oculto hasta que app.js confirme que hay número en el .env. -->
+<a class="wa-flot" id="wa-flot" href="#" target="_blank" rel="noopener" hidden
+   aria-label="Escribir por WhatsApp">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.6 2 2.2 6.4 2.2 11.84c0 1.74.46 3.44 1.33 4.94L2 22l5.34-1.4a9.8 9.8 0 0 0 4.7 1.2h.01c5.43 0 9.84-4.4 9.84-9.84S17.47 2 12.04 2m0 17.98h-.01a8.2 8.2 0 0 1-4.16-1.14l-.3-.18-3.1.81.83-3.02-.2-.31a8.13 8.13 0 0 1-1.25-4.3c0-4.5 3.68-8.17 8.2-8.17a8.15 8.15 0 0 1 8.18 8.18c0 4.5-3.67 8.13-8.19 8.13m4.5-6.1c-.25-.12-1.46-.72-1.68-.8-.23-.09-.39-.13-.55.12s-.64.8-.78.97c-.15.16-.29.18-.53.06a6.7 6.7 0 0 1-1.97-1.21 7.4 7.4 0 0 1-1.37-1.7c-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.09-.16.05-.31-.02-.43-.06-.13-.55-1.33-.76-1.82-.2-.48-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3c-.22.25-.85.83-.85 2.02s.87 2.34 1 2.5c.12.17 1.71 2.61 4.15 3.66.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.47-.07 1.45-.6 1.66-1.17.2-.58.2-1.07.14-1.18s-.22-.17-.46-.29"/></svg>
+</a>
+
+<main class="wrap">
+  <p class="count" id="count" role="status" aria-live="polite"></p>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden><span id="empty-msg">No hay productos con esos filtros.</span><br><button type="button" class="linklike" id="empty-reset">Ver todo el catálogo</button></p>
+  <nav class="pager" id="pager" aria-label="Paginación"></nav>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p id="foot-store"></p>
+    <p class="muted" id="foot-meta"></p>
+  </div>
+</footer>
+
+<dialog id="lb" class="lb" aria-label="Detalle del producto">
+  <button class="lb-x" id="lb-x" type="button" aria-label="Cerrar">&times;</button>
+  <button class="lb-nav lb-prev" id="lb-prev" type="button" aria-label="Anterior">&#8249;</button>
+  <button class="lb-nav lb-next" id="lb-next" type="button" aria-label="Siguiente">&#8250;</button>
+  <div class="lb-in">
+    <div class="lb-img" id="lb-img-box">
+      <!-- La capa que se desplaza al ampliar. La lupa queda fuera de ella para no viajar
+           con la foto: si esta dentro del elemento con overflow, se va con el contenido. -->
+      <div class="lb-pan" id="lb-pan"><img id="lb-img" alt=""></div>
+      <button class="lb-zoom" id="lb-zoom" type="button" aria-label="Ver más de cerca">
+        <svg class="mas" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2a8 8 0 1 0 4.9 14.32l5.39 5.39 1.42-1.42-5.39-5.39A8 8 0 0 0 10 2m0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12M9 6v2H7v2h2v2h2v-2h2V8h-2V6z"/></svg>
+        <svg class="menos" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M10 2a8 8 0 1 0 4.9 14.32l5.39 5.39 1.42-1.42-5.39-5.39A8 8 0 0 0 10 2m0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12M7 8h6v2H7z"/></svg>
+      </button>
+    </div>
+    <div class="lb-info">
+      <p class="lb-cat" id="lb-cat"></p>
+      <h2 class="lb-ref" id="lb-ref"></h2>
+      <p class="lb-nombre" id="lb-nombre" hidden></p>
+      <p class="lb-precio" id="lb-precio" hidden></p>
+      <div id="lb-sizes-wrap" hidden>
+        <p class="lb-lbl">Tallas disponibles</p>
+        <div class="lb-sizes" id="lb-sizes"></div>
+      </div>
+      <a id="lb-wa" class="wa-btn wa-big" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.6 2 2.2 6.4 2.2 11.84c0 1.74.46 3.44 1.33 4.94L2 22l5.34-1.4a9.8 9.8 0 0 0 4.7 1.2h.01c5.43 0 9.84-4.4 9.84-9.84S17.47 2 12.04 2m4.5 11.88c-.25-.12-1.46-.72-1.68-.8-.23-.09-.39-.13-.55.12s-.64.8-.78.97c-.15.16-.29.18-.53.06a6.7 6.7 0 0 1-1.97-1.21 7.4 7.4 0 0 1-1.37-1.7c-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.09-.16.05-.31-.02-.43-.06-.13-.55-1.33-.76-1.82-.2-.48-.4-.41-.55-.42h-.47a.9.9 0 0 0-.65.3c-.22.25-.85.83-.85 2.02s.87 2.34 1 2.5c.12.17 1.71 2.61 4.15 3.66.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.47-.07 1.45-.6 1.66-1.17.2-.58.2-1.07.14-1.18s-.22-.17-.46-.29"/></svg>
+        <span>Pedir por WhatsApp</span>
+      </a>
+      <p class="lb-hint">Se abre WhatsApp con el mensaje ya escrito.</p>
+    </div>
+  </div>
+</dialog>
+
+<script type="module" src="/src/app.js"></script>
+</body>
+</html>
